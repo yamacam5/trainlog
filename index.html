@@ -6,9 +6,10 @@
   <!-- 即リダイレクト -->
   <meta http-equiv="refresh" content="0; url=https://trainlog-bde55.web.app">
 
-  <!-- 念のためJSでも -->
+  <!-- JSでも強制 -->
   <script>
-    location.href = "https://trainlog-bde55.web.app";
+    const base = "https://trainlog-bde55.web.app";
+    location.href = base + location.pathname.replace('/trainlog', '') + location.search;
   </script>
 
   <title>移転しました</title>
