@@ -1,10 +1,23 @@
 {
   "name": "Trainlog",
   "short_name": "Trainlog",
-  "start_url": "/",
+  "start_url": "/trainlog/",
+  "scope": "/trainlog/",
   "display": "standalone",
   "background_color": "#f6f8fb",
   "theme_color": "#2563eb",
   "lang": "ja",
-  "description": "鉄道撮影記録を管理するPWAアプリ"
+  "description": "鉄道撮影記録を管理するPWAアプリ",
+  "icons": [
+    {
+      "src": "/trainlog/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/trainlog/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
