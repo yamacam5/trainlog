@@ -10,7 +10,7 @@ id,type,series,formation,vehicle_number,company,depot,car_count,active,note
 9,car,DF200,,DF200-8,JR貨物,五稜郭機関区,1,1,
 10,car,DF200,,DF200-9,JR貨物,五稜郭機関区,1,1,
 11,car,DF200,,DF200-10,JR貨物,五稜郭機関区,1,1,
-12,T,DF200,,DF200-11,JR貨物,五稜郭機関区,1,1,
+12,car,DF200,,DF200-11,JR貨物,五稜郭機関区,1,1,
 13,car,DF200,,DF200-12,JR貨物,五稜郭機関区,1,1,
 14,car,DF200,,DF200-51,JR貨物,五稜郭機関区,1,1,
 15,car,DF200,,DF200-52,JR貨物,五稜郭機関区,1,1,
