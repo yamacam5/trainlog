@@ -1,4 +1,4 @@
-const CACHE_NAME = "trainlog-v18";
+const CACHE_NAME = "trainlog-v19";
 
 // 更新を確実に反映させる対象
 const NETWORK_FIRST_PATTERNS = [
@@ -39,10 +39,18 @@ self.addEventListener("activate", (event) => {
 // フェッチ処理
 self.addEventListener("fetch", (event) => {
   const req = event.request;
+  const url = new URL(req.url);
+
+  // 🔥 Firebase / Google 系は完全に除外（これが超重要）
+  if (
+    url.hostname.includes("firebase") ||
+    url.hostname.includes("googleapis") ||
+    url.hostname.includes("gstatic")
+  ) {
+    return;
+  }
 
   if (req.method !== "GET") return;
-
-  const url = new URL(req.url);
 
   // 外部は無視
   if (url.origin !== self.location.origin) return;
