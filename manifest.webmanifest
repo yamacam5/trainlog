@@ -1,0 +1,10 @@
+{
+  "name": "Trainlog",
+  "short_name": "Trainlog",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f8fb",
+  "theme_color": "#2563eb",
+  "lang": "ja",
+  "description": "鉄道撮影記録を管理するPWAアプリ"
+}
