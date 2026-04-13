@@ -1,9 +1,27 @@
-const CACHE_NAME = "trainlog-v17";
+const CACHE_NAME = "trainlog-v18";
 
+// 更新を確実に反映させる対象
+const NETWORK_FIRST_PATTERNS = [
+  /\/trainlog\/$/,
+  /\/trainlog\/index\.html$/,
+  /\/trainlog\/sw\.js$/,
+  /\/trainlog\/manifest\.webmanifest/,
+  /\/trainlog\/assets\/.*\.(js|css)$/
+];
+
+function shouldUseNetworkFirst(request, url) {
+  if (request.mode === "navigate") return true;
+  return NETWORK_FIRST_PATTERNS.some((pattern) =>
+    pattern.test(url.pathname + url.search)
+  );
+}
+
+// インストール時 → 即有効化
 self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
+// 古いキャッシュを全削除
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -12,26 +30,25 @@ self.addEventListener("activate", (event) => {
           if (key !== CACHE_NAME) {
             return caches.delete(key);
           }
-          return Promise.resolve();
         })
       )
     ).then(() => self.clients.claim())
   );
 });
 
+// フェッチ処理
 self.addEventListener("fetch", (event) => {
   const req = event.request;
 
-  // GET以外は無視
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
 
-  // 外部リクエストは無視
+  // 外部は無視
   if (url.origin !== self.location.origin) return;
 
-  // ページ遷移 → ネット優先 + キャッシュ更新
-  if (req.mode === "navigate") {
+  // 🔥 JS/CSS/HTMLは常に最新優先
+  if (shouldUseNetworkFirst(req, url)) {
     event.respondWith(
       fetch(req)
         .then((res) => {
@@ -46,7 +63,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // その他リソース → キャッシュ優先 + バックグラウンド更新
+  // その他はキャッシュ優先
   event.respondWith(
     caches.match(req).then((cached) => {
       const fetchPromise = fetch(req)
@@ -64,12 +81,9 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-
-// 🔔 更新即反映（v17の安定化ポイント）
+// 手動更新用
 self.addEventListener("message", (event) => {
-  const data = event.data;
-
-  if (data === "SKIP_WAITING" || data?.type === "SKIP_WAITING") {
+  if (event.data === "SKIP_WAITING" || event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 });
