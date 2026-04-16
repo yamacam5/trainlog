@@ -1,27 +1,41 @@
-const CACHE_NAME = "trainlog-v19";
+const CACHE_NAME = "trainlog-v3-master-fresh";
 
-// 更新を確実に反映させる対象
-const NETWORK_FIRST_PATTERNS = [
-  /\/trainlog\/$/,
-  /\/trainlog\/index\.html$/,
-  /\/trainlog\/sw\.js$/,
-  /\/trainlog\/manifest\.webmanifest/,
-  /\/trainlog\/assets\/.*\.(js|css)$/
+const APP_SHELL = [
+  "/",
+  "/index.html",
+  "/manifest.webmanifest",
 ];
 
-function shouldUseNetworkFirst(request, url) {
-  if (request.mode === "navigate") return true;
-  return NETWORK_FIRST_PATTERNS.some((pattern) =>
-    pattern.test(url.pathname + url.search)
-  );
+function isFirebaseReservedPath(url) {
+  return url.pathname.startsWith("/__/");
 }
 
-// インストール時 → 即有効化
-self.addEventListener("install", () => {
+function isSameOrigin(url) {
+  return url.origin === self.location.origin;
+}
+
+function isAppShellRequest(request, url) {
+  return request.mode === "navigate" || APP_SHELL.includes(url.pathname);
+}
+
+function isStaticAsset(url) {
+  return /\.[a-z0-9]+$/i.test(url.pathname);
+}
+
+function isMasterDataRequest(url) {
+  return /\/vehicle_master\.csv($|\?)/i.test(url.pathname + url.search) || /\.csv($|\?)/i.test(url.pathname + url.search);
+}
+
+
+// インストール
+self.addEventListener("install", (event) => {
   self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+  );
 });
 
-// 古いキャッシュを全削除
+// 有効化
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -32,66 +46,63 @@ self.addEventListener("activate", (event) => {
           }
         })
       )
-    ).then(() => self.clients.claim())
+    )
   );
+  self.clients.claim();
 });
 
 // フェッチ処理
 self.addEventListener("fetch", (event) => {
-  const req = event.request;
-  const url = new URL(req.url);
+  const request = event.request;
+  if (request.method !== "GET") return;
 
-  // 🔥 Firebase / Google 系は完全に除外（これが超重要）
-  if (
-    url.hostname.includes("firebase") ||
-    url.hostname.includes("googleapis") ||
-    url.hostname.includes("gstatic")
-  ) {
-    return;
-  }
+  const url = new URL(request.url);
 
-  if (req.method !== "GET") return;
+  // 🔥 Firebase Authは絶対に触らない（超重要）
+  if (isFirebaseReservedPath(url)) return;
 
-  // 外部は無視
-  if (url.origin !== self.location.origin) return;
+  // 他ドメインも触らない
+  if (!isSameOrigin(url)) return;
 
-  // 🔥 JS/CSS/HTMLは常に最新優先
-  if (shouldUseNetworkFirst(req, url)) {
+  // HTML系 → ネット優先
+  if (isAppShellRequest(request, url)) {
     event.respondWith(
-      fetch(req)
+      fetch(request)
         .then((res) => {
-          if (res && res.status === 200) {
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          }
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           return res;
         })
-        .catch(() => caches.match(req))
+        .catch(() => caches.match(request).then((res) => res || caches.match("/index.html")))
     );
     return;
   }
 
-  // その他はキャッシュ優先
-  event.respondWith(
-    caches.match(req).then((cached) => {
-      const fetchPromise = fetch(req)
+  // CSVなどマスターデータ → ネット優先
+  if (isMasterDataRequest(url)) {
+    event.respondWith(
+      fetch(request, { cache: "no-store" })
         .then((res) => {
-          if (res && res.status === 200) {
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          }
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           return res;
         })
-        .catch(() => cached);
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
 
-      return cached || fetchPromise;
-    })
-  );
-});
-
-// 手動更新用
-self.addEventListener("message", (event) => {
-  if (event.data === "SKIP_WAITING" || event.data?.type === "SKIP_WAITING") {
-    self.skipWaiting();
+  // 静的ファイル → キャッシュ優先
+  if (isStaticAsset(url)) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          return res;
+        });
+      })
+    );
   }
 });
