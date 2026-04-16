@@ -1,25 +1,48 @@
 <!doctype html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#2563eb" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Trainlog" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TRAINLOGへ移動中...</title>
 
-    <link rel="manifest" href="./manifest.webmanifest?v=6" />
-    <link rel="icon" href="./icon-192.png?v=6" />
-    <link rel="apple-touch-icon" href="./icon-192.png?v=6" />
-    <link rel="apple-touch-icon" sizes="512x512" href="./icon-512.png?v=6" />
+  <!-- 即時リダイレクト -->
+  <meta http-equiv="refresh" content="0; url=https://trainlog-bde55.web.app/" />
 
-    <title>Trainlog</title>
-    <script type="module" crossorigin src="/assets/index-B6e_sw_t.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CRNeMlzs.css">
-  </head>
-  <body>
-    <div id="root"></div>
+  <script>
+    window.location.replace("https://trainlog-bde55.web.app/");
+  </script>
 
-    <!-- 🔥 ここが超重要 -->
-  </body>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: sans-serif;
+      background: #f8fafc;
+      color: #1f2937;
+    }
+
+    .box {
+      text-align: center;
+      padding: 24px;
+    }
+
+    a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <p>TRAINLOG に移動しています...</p>
+    <p>
+      自動で移動しない場合は
+      <a href="https://trainlog-bde55.web.app/">こちら</a>
+      を押してください。
+    </p>
+  </div>
+</body>
 </html>
